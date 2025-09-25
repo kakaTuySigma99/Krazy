@@ -674,4 +674,63 @@ BlatantTab:AddToggle({
     end
 })
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local FunnyTab = Window:MakeTab({
+    Name = "Funny",
+    PremiumOnly = false
+})
+
+local function playAnim(animId)
+    local char = LocalPlayer.Character
+    if not char then return end
+    local humanoid = char:FindFirstChildOfClass("Humanoid")
+    if not humanoid then return end
+
+    local anim = Instance.new("Animation")
+    anim.AnimationId = "rbxassetid://"..animId
+    local track = humanoid:LoadAnimation(anim)
+    track:Play()
+end
+
+-- Crash Out button
+FunnyTab:AddButton({
+    Name = "Crash Out",
+    Callback = function()
+        playAnim("130725432915474")
+    end
+})
+
+-- Howl button
+FunnyTab:AddButton({
+    Name = "Howl",
+    Callback = function()
+        playAnim("109803302620003")
+    end
+})
+
+-- BackShot toggle
+do
+    local active = false
+    local animId = "109803302620003"
+    local lastTime = 0
+
+    FunnyTab:AddToggle({
+        Name = "BackShot",
+        Default = false,
+        Callback = function(state) active = state end
+    })
+
+    RunService.Heartbeat:Connect(function(dt)
+        if not active then return end
+        lastTime = lastTime + dt
+        if lastTime >= 0.7 then
+            lastTime = 0
+            playAnim(animId)
+        end
+    end)
+end
+
 OrionLib:Init()
