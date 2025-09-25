@@ -10,27 +10,6 @@ local Window = OrionLib:MakeWindow({
     IntroEnabled = false
 })
 
-local InfoTab = Window:MakeTab({
-    Name = "Information",
-    Icon = "rbxassetid://4483345998",
-    PremiumOnly = false
-})
-
-InfoTab:AddParagraph("General Info", [[
-This GUI contains multiple tabs with functions:
-
-- Premake Tab: Predefined ability sets. Click buttons to set abilities quickly.
-- Blatant Tab: Use abilities manually. Select ability from dropdown and click 'Use Ability'.
-- Funny Tab: Change animations and perform funny actions like 'Howl'. Toggle auto-Howl every 2 seconds.
-- Aimbot Tab: Aim automatically when performing specific abilities:
-    * Taunt Aimbot: Targets players automatically when Taunt animation plays.
-    * Punch Aimbot: Targets players automatically when Punch animation plays.
-    * CareTaker Aimbot: Targets nearest, lowest health, all, or normal. Always aims straight, no prediction.
-- Update Logs: Check all functions and latest changes.
-
-Use toggles to activate features, dropdowns for options, and text boxes for prediction or distance values.
-]])
-
 -- Abilities list
 local abilities = {
     "Adrenaline",
