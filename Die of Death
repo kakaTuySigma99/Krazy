@@ -6,7 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 local Window = OrionLib:MakeWindow({
     Name = "Kaka hub DoD",
     HidePremium = false,
-    SaveConfig = false,
+    SaveConfig = true,
     IntroEnabled = false
 })
 
@@ -540,6 +540,4 @@ BlatantTab:AddToggle({
     end
 })
 
--- Table of ability cooldowns/descriptions
-local abilityInfo = {
-    Adrenaline = "Cooldown: 30 seconds",
+OrionLib:Init
