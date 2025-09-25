@@ -226,10 +226,7 @@ local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
 
--- Aimbot Tab (existing)
--- AimbotTab should already be defined in your GUI
-
--- Helper function to rotate HRP toward target
+-- Fixed helper function to rotate HRP toward target
 local function faceTarget(hrp, targetPos)
     local dir = Vector3.new(targetPos.X - hrp.Position.X, 0, targetPos.Z - hrp.Position.Z)
     if dir.Magnitude < 0.1 then return end -- ignore if too close
@@ -238,7 +235,7 @@ local function faceTarget(hrp, targetPos)
     hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, yaw, 0)
 end
 
--- Toggle variables
+-- Aimbot toggles
 local tauntActive, punchActive, careActive, revolverActive = false, false, false, false
 
 -- Taunt Aimbot
@@ -263,25 +260,23 @@ AimbotTab:AddToggle({
 })
 
 -- Revolver Aimbot
+local revolverPredictionValue = 3
+local revolverPredictionMode = "Straight"
+
 AimbotTab:AddToggle({
     Name="Revolver Aimbot",
     Default=false,
     Callback=function(state) revolverActive = state end
 })
 
--- Revolver settings
-local revolverPredictionValue = 1
-local revolverPredictionMode = "Straight"
-
--- Heartbeat loop for all aimbots
+-- Main Heartbeat loop
 RunService.Heartbeat:Connect(function()
     pcall(function()
         local char = LocalPlayer.Character
         if not char then return end
         local humanoid = char:FindFirstChildOfClass("Humanoid")
-        if not humanoid then return end
         local hrp = char:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
+        if not humanoid or not hrp then return end
 
         for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
             if track.Animation then
@@ -370,6 +365,7 @@ RunService.Heartbeat:Connect(function()
                         faceTarget(hrp, predictedPos)
                     end
                 end
+
             end
         end
     end)
