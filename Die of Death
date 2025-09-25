@@ -231,12 +231,11 @@ local RunService = game:GetService("RunService")
 
 -- Helper function to rotate HRP toward target
 local function faceTarget(hrp, targetPos)
-    local dx = targetPos.X - hrp.Position.X
-    local dz = targetPos.Z - hrp.Position.Z
-    if math.abs(dx)+math.abs(dz) > 0.001 then
-        local yaw = math.atan2(dx,dz)
-        hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, yaw, 0)
-    end
+    local dir = Vector3.new(targetPos.X - hrp.Position.X, 0, targetPos.Z - hrp.Position.Z)
+    if dir.Magnitude < 0.1 then return end -- ignore if too close
+    dir = dir.Unit
+    local yaw = math.atan2(dir.X, dir.Z)
+    hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, yaw, 0)
 end
 
 -- Toggle variables
@@ -271,7 +270,7 @@ AimbotTab:AddToggle({
 })
 
 -- Revolver settings
-local revolverPredictionValue = 3
+local revolverPredictionValue = 1
 local revolverPredictionMode = "Straight"
 
 -- Heartbeat loop for all aimbots
