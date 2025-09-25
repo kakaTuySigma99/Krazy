@@ -6,51 +6,29 @@ local LocalPlayer = Players.LocalPlayer
 local Window = OrionLib:MakeWindow({
     Name = "Kaka hub DoD",
     HidePremium = false,
-    SaveConfig = false,
+    SaveConfig = true,
     IntroEnabled = false
 })
 
-local UpdateTab = Window:MakeTab({
-    Name = "Update Logs",
+local InfoTab = Window:MakeTab({
+    Name = "Information",
+    Icon = "rbxassetid://4483345998",
     PremiumOnly = false
 })
 
-UpdateTab:AddParagraph("Abilities Tab", [[
-- Dropdowns to select Ability Slot 1 and Slot 2
-- Fire Abilities button to send selected abilities
-]])
+InfoTab:AddParagraph("General Info", [[
+This GUI contains multiple tabs with functions:
 
-UpdateTab:AddParagraph("Premake Tab", [[
-- Forsaken Deck Label
-- Guest 1337 → Block + Punch
-- Noob → Cloak + Adrenaline
-- Shedletsky → Punch + Hotdog
-- Two Time Temu → Punch + Dash
-- Loveshot → Revolver + Caretaker
-- Carepad → Caretaker + BonusPad
-]])
+- Premake Tab: Predefined ability sets. Click buttons to set abilities quickly.
+- Blatant Tab: Use abilities manually. Select ability from dropdown and click 'Use Ability'.
+- Funny Tab: Change animations and perform funny actions like 'Howl'. Toggle auto-Howl every 2 seconds.
+- Aimbot Tab: Aim automatically when performing specific abilities:
+    * Taunt Aimbot: Targets players automatically when Taunt animation plays.
+    * Punch Aimbot: Targets players automatically when Punch animation plays.
+    * CareTaker Aimbot: Targets nearest, lowest health, all, or normal. Always aims straight, no prediction.
+- Update Logs: Check all functions and latest changes.
 
-UpdateTab:AddParagraph("Blatant Tab", [[
-- Dropdown to select any ability
-- Use Ability button
-- Shows cooldowns for all abilities:
-  1. Adrenaline → 30s
-  2. Banana Peel → 20s
-  3. Block → 40s
-  4. BonusPad → 60s
-  5. CarePad → 60s
-  6. Caretaker → 30s
-  7. Cloak → 50s
-  8. Dash → 25s
-  9. Hotdog → 25s
-  10. Punch → 40s
-  11. Revolver → ~22s
-]])
-
-UpdateTab:AddParagraph("Funny Tab", [[
-- Toggle Funny Animations (replace Idle, Walk, Sprint)
-- Howl button → play Howl animation
-- Auto Howl toggle → repeat every 2s
+Use toggles to activate features, dropdowns for options, and text boxes for prediction or distance values.
 ]])
 
 -- Abilities list
@@ -244,96 +222,6 @@ local AimbotTab = Window:MakeTab({
     PremiumOnly = false
 })
 
--- Aimbot Punch (fixed: only rotate Y axis to avoid black screen)
-local aimbotPunchActive = false
-local punchPredictionValue = 2
-local punchPredictionMode = "Straight"
-
-AimbotTab:AddToggle({
-    Name = Punch Aimbot",
-    Default = false,
-    Callback = function(state)
-        aimbotPunchActive = state
-        if state then
-            spawn(function()
-                local lp = LocalPlayer
-                while aimbotPunchActive do
-                    if lp and lp.Character and lp.Character:FindFirstChildOfClass("Humanoid") then
-                        local humanoid = lp.Character:FindFirstChildOfClass("Humanoid")
-                        for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
-                            if track.Animation and track.Animation.AnimationId == "rbxassetid://119110237951876" then
-                                local hrp = lp.Character:FindFirstChild("HumanoidRootPart")
-                                if hrp then
-                                    -- find first valid target
-                                    local target = nil
-                                    for _, plr in pairs(game:GetService("Players"):GetPlayers()) do
-                                        if plr ~= lp and plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
-                                            local th = plr.Character:FindFirstChildOfClass("Humanoid")
-                                            local tph = plr.Character:FindFirstChild("HumanoidRootPart")
-                                            if th and tph and th.Health > 130 then
-                                                target = tph
-                                                break
-                                            end
-                                        end
-                                    end
-
-                                    if target then
-                                        local predictedPos = target.Position
-                                        local vel = target.Velocity or Vector3.new(0,0,0)
-
-                                        if vel.Magnitude > 0.01 then
-                                            if punchPredictionMode == "Straight" then
-                                                predictedPos = predictedPos + (vel.Unit * punchPredictionValue)
-                                            elseif punchPredictionMode == "Sideway" then
-                                                local perp = Vector3.new(-vel.Z, 0, vel.X)
-                                                if perp.Magnitude > 0.01 then
-                                                    predictedPos = predictedPos + (perp.Unit * punchPredictionValue)
-                                                end
-                                            end
-                                        end
-
-                                        -- safe Y-only facing (avoids camera black screen)
-                                        local hrpPos = hrp.Position
-                                        local dx = predictedPos.X - hrpPos.X
-                                        local dz = predictedPos.Z - hrpPos.Z
-                                        if math.abs(dx) + math.abs(dz) > 0.001 then
-                                            local yaw = math.atan2(dx, dz)
-                                            -- keep position, only rotate around Y
-                                            hrp.CFrame = CFrame.new(hrpPos) * CFrame.Angles(0, yaw, 0)
-                                        end
-                                    end
-                                end
-                            end
-                        end
-                    end
-                    game:GetService("RunService").Heartbeat:Wait()
-                end
-            end)
-        end
-    end
-})
-
-AimbotTab:AddTextbox({
-    Name = "Punch Prediction Value",
-    Default = "2",
-    TextDisappear = false,
-    Callback = function(value)
-        local num = tonumber(value)
-        if num then
-            punchPredictionValue = num
-        end
-    end
-})
-
-AimbotTab:AddDropdown({
-    Name = "Punch Prediction Mode",
-    Default = "Straight",
-    Options = {"Straight", "Sideway"},
-    Callback = function(option)
-        punchPredictionMode = option
-    end
-})
-
 -- Revolver Aimbot (new, independent)
 local revolverAimbotActive = false
 local revolverPredictionValue = 2
@@ -412,6 +300,151 @@ AimbotTab:AddDropdown({
         revolverPredictionMode = option
     end
 })
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local function createAimbot(animationId, name)
+    local active = false
+    local predictionValue = 3
+    local predictionMode = "Straight"
+
+    AimbotTab:AddToggle({
+        Name = name.." Toggle",
+        Default = false,
+        Callback = function(state)
+            active = state
+        end
+    })
+
+    AimbotTab:AddTextbox({
+        Name = name.." Prediction Value",
+        Default = "3",
+        TextDisappear = false,
+        Callback = function(value)
+            local num = tonumber(value)
+            if num then predictionValue = num end
+        end
+    })
+
+    AimbotTab:AddDropdown({
+        Name = name.." Prediction Mode",
+        Default = "Straight",
+        Options = {"Normal","Straight","Sideway"},
+        Callback = function(option)
+            predictionMode = option
+        end
+    })
+
+    RunService.Heartbeat:Connect(function()
+        if not active then return end
+        pcall(function()
+            local char = LocalPlayer.Character
+            if not char then return end
+            local humanoid = char:FindFirstChildOfClass("Humanoid")
+            if not humanoid then return end
+            for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+                if track.Animation and track.Animation.AnimationId == "rbxassetid://"..animationId then
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if not hrp then return end
+                    local target = nil
+                    for _, plr in pairs(Players:GetPlayers()) do
+                        if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                            local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+                            local tph = plr.Character:FindFirstChild("HumanoidRootPart")
+                            if hum and tph and hum.Health > 130 then
+                                target = tph
+                                break
+                            end
+                        end
+                    end
+                    if target then
+                        local predictedPos = target.Position
+                        if predictionMode ~= "Normal" then
+                            local vel = target.Velocity or Vector3.new(0,0,0)
+                            predictedPos = predictedPos + vel.Unit * predictionValue
+                        end
+                        local dx = predictedPos.X - hrp.Position.X
+                        local dz = predictedPos.Z - hrp.Position.Z
+                        hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, math.atan2(dx, dz),0)
+                    end
+                end
+            end
+        end)
+    end)
+end
+
+createAimbot("113732291990231","Taunt Aimbot")
+createAimbot("124781750889573","Punch Aimbot")
+
+local activeCare = false
+local careMode = "All"
+
+AimbotTab:AddToggle({
+    Name = "CareTaker Aimbot",
+    Default = false,
+    Callback = function(state) activeCare = state end
+})
+
+AimbotTab:AddDropdown({
+    Name = "CareTaker Mode",
+    Default = "All",
+    Options = {"All","Nearest","Lowest Health","Normal"},
+    Callback = function(option) careMode = option end
+})
+
+RunService.Heartbeat:Connect(function()
+    if not activeCare then return end
+    pcall(function()
+        local char = LocalPlayer.Character
+        if not char then return end
+        local humanoid = char:FindFirstChildOfClass("Humanoid")
+        if not humanoid then return end
+        for _, track in pairs(humanoid:GetPlayingAnimationTracks()) do
+            if track.Animation and track.Animation.AnimationId == "rbxassetid://128767098320893" then
+                local hrp = char:FindFirstChild("HumanoidRootPart")
+                if not hrp then return end
+                local target = nil
+                local closestDist = math.huge
+                local lowestHealth = math.huge
+                for _, plr in pairs(Players:GetPlayers()) do
+                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChildOfClass("Humanoid") then
+                        local hum = plr.Character:FindFirstChildOfClass("Humanoid")
+                        local tph = plr.Character:FindFirstChild("HumanoidRootPart")
+                        if hum and tph and hum.Health > 0 then
+                            local dist = (hrp.Position - tph.Position).Magnitude
+                            if careMode == "Nearest" then
+                                if dist < closestDist then
+                                    closestDist = dist
+                                    target = tph
+                                end
+                            elseif careMode == "Lowest Health" then
+                                if hum.Health < lowestHealth then
+                                    lowestHealth = hum.Health
+                                    target = tph
+                                end
+                            elseif careMode == "All" then
+                                if dist < closestDist and hum.Health < lowestHealth then
+                                    closestDist = dist
+                                    lowestHealth = hum.Health
+                                    target = tph
+                                end
+                            elseif careMode == "Normal" then
+                                target = tph
+                            end
+                        end
+                    end
+                end
+                if target then
+                    local dx = target.Position.X - hrp.Position.X
+                    local dz = target.Position.Z - hrp.Position.Z
+                    hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, math.atan2(dx,dz),0)
+                end
+            end
+        end
+    end)
+end)
 
 -- =======================
 -- Blatant Tab
@@ -510,113 +543,3 @@ BlatantTab:AddToggle({
 -- Table of ability cooldowns/descriptions
 local abilityInfo = {
     Adrenaline = "Cooldown: 30 seconds",
-    ["Banana Peel"] = "Cooldown: 20 seconds",
-    Block = "Cooldown: 40 seconds",
-    BonusPad = "Cooldown: 60 seconds",
-    ["CarePad"] = "Cooldown: 60 seconds (BonusPad + Caretaker synergy)",
-    Caretaker = "Cooldown: 30 seconds",
-    Cloak = "Cooldown: 50 seconds",
-    Dash = "Cooldown: 25 seconds",
-    Hotdog = "Cooldown: 25 seconds",
-    Punch = "Cooldown: 40 seconds",
-    Revolver = "Cooldown: Approximately 22 seconds"
-}
-
--- Add paragraphs below the Use Ability button
-for _, abilityName in ipairs(abilities) do
-    local displayName = abilityName
-    if displayName == "Banana" then displayName = "Banana Peel" end
-    BlatantTab:AddParagraph(displayName, abilityInfo[displayName] or "No info")
-end
-
-local FunnyTab = Window:MakeTab({
-    Name = "Funny",
-    PremiumOnly = false
-})
-
-local toggleActive = false
-local autoHowlActive = false
-
-local originalAnims = {
-    Idle = 100930402371608,
-    Walk = 84388941697203,
-    Sprint = 137375023685630
-}
-
-local funnyAnims = {
-    Idle = 94473571249263,
-    Walk = 102572617659889,
-    Sprint = 100948610539178
-}
-
-local AnimFolder = game:GetService("ReplicatedStorage"):WaitForChild("Characters"):WaitForChild("Survivor"):WaitForChild("Civilian"):WaitForChild("Animations")
-
-local function swapAnimations(animTable)
-    for name, id in pairs(animTable) do
-        local animObj = AnimFolder:FindFirstChild(name)
-        if animObj and animObj:IsA("Animation") then
-            animObj.AnimationId = "rbxassetid://"..id
-        end
-    end
-end
-
-local function playHowl()
-    local character = LocalPlayer.Character
-    if not character then return end
-    local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-    if not humanoid then return end
-    local anim = Instance.new("Animation")
-    anim.AnimationId = "rbxassetid://109803302620003"
-    local track = humanoid:LoadAnimation(anim)
-    track:Play()
-end
-
-FunnyTab:AddToggle({
-    Name = "Funny Animations",
-    Default = false,
-    Callback = function(state)
-        toggleActive = state
-        if state then
-            spawn(function()
-                local current = originalAnims
-                while toggleActive do
-                    if current == originalAnims then
-                        current = funnyAnims
-                    else
-                        current = originalAnims
-                    end
-                    swapAnimations(current)
-                    wait(2)
-                end
-                swapAnimations(originalAnims)
-            end)
-        else
-            swapAnimations(originalAnims)
-        end
-    end
-})
-
-FunnyTab:AddButton({
-    Name = "Howl",
-    Callback = function()
-        playHowl()
-    end
-})
-
-FunnyTab:AddToggle({
-    Name = "Auto Howl",
-    Default = false,
-    Callback = function(state)
-        autoHowlActive = state
-        if state then
-            spawn(function()
-                while autoHowlActive do
-                    playHowl()
-                    wait(2)
-                end
-            end)
-        end
-    end
-})
-
-OrionLib:Init()
