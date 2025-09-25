@@ -618,3 +618,5 @@ FunnyTab:AddToggle({
         end
     end
 })
+
+OrionLib:Init()
