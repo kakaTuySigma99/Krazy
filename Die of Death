@@ -404,6 +404,34 @@ do
         Callback = function(state) active = state end
     })
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+
+local AimbotTab = Window:MakeTab({
+    Name = "Aimbot",
+    PremiumOnly = false
+})
+
+local function faceTarget(hrp, targetPos)
+    local dx = targetPos.X - hrp.Position.X
+    local dz = targetPos.Z - hrp.Position.Z
+    if math.abs(dx) + math.abs(dz) > 0.001 then
+        local yaw = math.atan2(dx, dz)
+        hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, yaw, 0)
+    end
+end
+
+-- Generic aimbot creator
+local function createAimbot(name, animId, healthCheck)
+    local active = false
+
+    AimbotTab:AddToggle({
+        Name = name,
+        Default = false,
+        Callback = function(state) active = state end
+    })
+
     RunService.Heartbeat:Connect(function()
         if not active then return end
         pcall(function()
@@ -416,14 +444,13 @@ do
                 if track.Animation and track.Animation.AnimationId == "rbxassetid://"..animId then
                     local hrp = char:FindFirstChild("HumanoidRootPart")
                     if not hrp then return end
-
                     local nearestTarget = nil
                     local nearestDist = math.huge
                     for _, plr in ipairs(Players:GetPlayers()) do
                         if plr ~= LocalPlayer and plr.Character then
                             local th = plr.Character:FindFirstChildOfClass("Humanoid")
                             local tph = plr.Character:FindFirstChild("HumanoidRootPart")
-                            if th and tph and th.Health <= 200 then
+                            if th and tph and healthCheck(th.Health) then
                                 local dist = (hrp.Position - tph.Position).Magnitude
                                 if dist < nearestDist then
                                     nearestDist = dist
@@ -432,18 +459,22 @@ do
                             end
                         end
                     end
-
-                    if nearestTarget then
-                        local dx = nearestTarget.Position.X - hrp.Position.X
-                        local dz = nearestTarget.Position.Z - hrp.Position.Z
-                        hrp.CFrame = CFrame.new(hrp.Position) * CFrame.Angles(0, math.atan2(dx, dz), 0)
-                    end
+                    if nearestTarget then faceTarget(hrp, nearestTarget.Position) end
                     break
                 end
             end
         end)
     end)
 end
+
+-- Taunt Aimbot (targets players with health > 150)
+createAimbot("Taunt Aimbot", "113732291990231", function(hp) return hp > 150 end)
+
+-- Punch Aimbot (targets players with health > 150)
+createAimbot("Punch Aimbot", "124781750889573", function(hp) return hp > 150 end)
+
+-- CareTaker Aimbot (targets nearest player with health <= 200)
+createAimbot("CareTaker Aimbot", "128767098320893", function(hp) return hp <= 200 end)
 
 -- =======================
 -- Blatant Tab
