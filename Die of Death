@@ -540,4 +540,4 @@ BlatantTab:AddToggle({
     end
 })
 
-OrionLib:Init
+OrionLib:Init()
