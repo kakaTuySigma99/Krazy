@@ -465,7 +465,6 @@ BlatantTab:AddToggle({
     end
 })
 
-local Players = game:GetService("Players")
 local tpToggleActive = false
 local isTeleporting = false
 
@@ -508,20 +507,25 @@ game:GetService("RunService").Heartbeat:Connect(function()
                     if nearest then
                         isTeleporting = true
                         local originalCFrame = hrp.CFrame
-                        local targetPosAbove = nearest.Position + Vector3.new(0, 2, 0)
-                        hrp.CFrame = CFrame.new(targetPosAbove)
-                        task.spawn(function()
-                            task.wait(0.7)
-                            pcall(function()
-                                if hrp and originalCFrame then
-                                    hrp.CFrame = originalCFrame
-                                end
-                            end)
-                            isTeleporting = false
-                        end)
+                        local target = nearest
+
+                        -- TP 2 studs above target
+                        hrp.CFrame = CFrame.new(target.Position + Vector3.new(0, 2, 0))
+
+                        -- loop face down at target for 0.6 sec
+                        local start = tick()
+                        while tick() - start < 0.6 and tpToggleActive and hrp and target and target.Parent do
+                            hrp.CFrame = CFrame.lookAt(hrp.Position, target.Position)
+                            game:GetService("RunService").Heartbeat:Wait()
+                        end
+
+                        -- teleport back
+                        if hrp then
+                            hrp.CFrame = originalCFrame
+                        end
+                        isTeleporting = false
                     end
                 end
-                break
             end
         end
     end)
