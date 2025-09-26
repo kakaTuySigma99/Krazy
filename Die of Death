@@ -466,9 +466,6 @@ BlatantTab:AddToggle({
 })
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-local RunService = game:GetService("RunService")
-
 local tpToggleActive = false
 local isTeleporting = false
 
@@ -480,7 +477,7 @@ BlatantTab:AddToggle({
     end
 })
 
-RunService.Heartbeat:Connect(function()
+game:GetService("RunService").Heartbeat:Connect(function()
     if not tpToggleActive then return end
     pcall(function()
         local char = LocalPlayer.Character
@@ -493,9 +490,8 @@ RunService.Heartbeat:Connect(function()
         for _, track in ipairs(humanoid:GetPlayingAnimationTracks()) do
             if track.Animation and track.Animation.AnimationId == "rbxassetid://74108653904830" then
                 if not isTeleporting then
-                    -- find nearest valid target with Health > 150
                     local nearest, nearestDist = nil, math.huge
-                    for _, plr in ipairs(Players:GetPlayers()) do
+                    for _, plr in ipairs(game:GetService("Players"):GetPlayers()) do
                         if plr ~= LocalPlayer and plr.Character then
                             local th = plr.Character:FindFirstChildOfClass("Humanoid")
                             local tph = plr.Character:FindFirstChild("HumanoidRootPart")
@@ -512,11 +508,9 @@ RunService.Heartbeat:Connect(function()
                     if nearest then
                         isTeleporting = true
                         local originalCFrame = hrp.CFrame
-                        -- teleport 2 studs above target instantly
                         local targetPosAbove = nearest.Position + Vector3.new(0, 2, 0)
                         hrp.CFrame = CFrame.new(targetPosAbove)
-                        -- stay for 0.7 seconds
-                        spawn(function()
+                        task.spawn(function()
                             task.wait(0.7)
                             pcall(function()
                                 if hrp and originalCFrame then
